@@ -133,7 +133,7 @@ export default function FinanceManager({ filter = 'all', onFilterChange }: { fil
                   <input required type="text" name="description" placeholder="Vd: Tiền sân, tiền nước..." className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-slate-200 focus:outline-none focus:border-emerald-500" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-400 mb-1">Số tiền (VNĐ)</label>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Số tiền (Nghìn đồng)</label>
                   <input required type="text" value={amountStr} onChange={handleAmountChange} placeholder="Vd: 100" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-slate-200 focus:outline-none focus:border-emerald-500" />
                 </div>
                 {transactionType === 'income' && (
