@@ -59,11 +59,35 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       if (showLoading) setIsLoading(true);
       setError(null);
       
-      const [fetchedMembers, fetchedMatches, fetchedTransactions] = await Promise.all([
-        fetchAndParse<Member>(MEMBERS_URL),
-        fetchAndParse<Match>(MATCHES_URL),
-        fetchAndParse<any>(TRANSACTIONS_URL) // use any initially to handle number conversion
-      ]);
+      let fetchedMembers: Member[] = [];
+      let fetchedMatches: Match[] = [];
+      let fetchedTransactions: any[] = [];
+
+      const appsScriptUrl = import.meta.env.VITE_APPS_SCRIPT_URL;
+      let fetchedViaScript = false;
+
+      if (appsScriptUrl) {
+        try {
+          const response = await fetch(appsScriptUrl + '?action=getData');
+          const json = await response.json();
+          if (json.status === 'success') {
+            fetchedMembers = json.data.members;
+            fetchedMatches = json.data.matches;
+            fetchedTransactions = json.data.transactions;
+            fetchedViaScript = true;
+          }
+        } catch (e) {
+          console.warn('Lỗi khi lấy dữ liệu trực tiếp từ Apps Script, chuyển sang lấy từ CSV...', e);
+        }
+      }
+      
+      if (!fetchedViaScript) {
+        [fetchedMembers, fetchedMatches, fetchedTransactions] = await Promise.all([
+          fetchAndParse<Member>(MEMBERS_URL),
+          fetchAndParse<Match>(MATCHES_URL),
+          fetchAndParse<any>(TRANSACTIONS_URL) // use any initially to handle number conversion
+        ]);
+      }
 
       // Process numeric fields in transactions
       const processedTransactions: Transaction[] = fetchedTransactions.map(t => ({
