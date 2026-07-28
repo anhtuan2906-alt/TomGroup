@@ -1,4 +1,4 @@
-import { formatCurrency, formatDate } from '../utils';
+import { formatCurrency, formatDate, getDirectImageUrl } from '../utils';
 import { useData } from '../contexts/DataContext';
 import { Loader2 } from 'lucide-react';
 
@@ -31,14 +31,24 @@ export default function MembersList() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold text-slate-100">Danh sách thành viên</h2>
+        <h2 className="text-2xl font-bold text-slate-100">Danh sách cầu thủ</h2>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {membersWithContributions.map((member, index) => (
           <div key={`${member.id || 'member'}-${index}`} className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5 hover:bg-slate-800 transition-colors shadow-sm">
             <div className="flex items-center gap-4 mb-4">
-              <img src={member.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${member.name}`} alt={member.name} className="w-14 h-14 rounded-full bg-slate-700 object-cover border-2 border-slate-600" />
+              <img 
+                src={getDirectImageUrl(member.avatar) || `https://api.dicebear.com/7.x/initials/svg?seed=${member.name}`} 
+                alt={member.name} 
+                className="w-14 h-14 rounded-full bg-slate-700 object-cover border-2 border-slate-600"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null;
+                  target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${member.name}`;
+                }}
+              />
               <div>
                 <h3 className="font-bold text-slate-200">{member.name}</h3>
                 <p className="text-sm text-slate-400">{member.position}</p>

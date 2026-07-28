@@ -9,6 +9,8 @@ interface AppData {
   isLoading: boolean;
   error: string | null;
   refreshData: () => Promise<void>;
+  addMatch: (match: Omit<Match, 'id'>) => void;
+  addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
 }
 
 const DataContext = createContext<AppData | undefined>(undefined);
@@ -18,7 +20,8 @@ const MATCHES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRfJntW2Ska
 const TRANSACTIONS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRfJntW2SkaQIWje-6sZOvAsX2Cs3qH9N9ByjudwXUN6ibZDD-ApdmKFCzevWCQLxPJBoUkE5T3niES/pub?gid=1900093703&single=true&output=csv';
 
 async function fetchAndParse<T>(url: string): Promise<T[]> {
-  const response = await fetch(url);
+  const cacheBuster = `&_t=${new Date().getTime()}`;
+  const response = await fetch(url.includes('?') ? url + cacheBuster : url + '?' + cacheBuster);
   if (!response.ok) {
     throw new Error(`Failed to fetch data from ${url}`);
   }
@@ -76,12 +79,72 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const addMatch = async (matchData: Omit<Match, 'id'>) => {
+    // Cập nhật giao diện ngay lập tức
+    const newMatch: Match = {
+      ...matchData,
+      id: `match-${Date.now()}`
+    };
+    setMatches(prev => [...prev, newMatch]);
+
+    // Gửi lên Google Apps Script
+    const appsScriptUrl = import.meta.env.VITE_APPS_SCRIPT_URL;
+    if (appsScriptUrl) {
+      try {
+        await fetch(appsScriptUrl, {
+          method: 'POST',
+          mode: 'no-cors', // Cần thiết để tránh lỗi CORS khi gọi Google Apps Script
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'addMatch', payload: newMatch })
+        });
+        // Gọi refreshData để cập nhật dữ liệu mới nhất (dù CSV có thể bị delay vài phút)
+        setTimeout(() => fetchData(), 2000);
+      } catch (e) {
+        console.error('Lỗi khi lưu lên Google Sheets:', e);
+        // Với no-cors, fetch hiếm khi ném lỗi (trừ khi mất mạng), nhưng nếu có lỗi thì báo:
+        alert('Lưu thất bại: Vui lòng kiểm tra lại đường truyền mạng.');
+      }
+    } else {
+      console.warn('VITE_APPS_SCRIPT_URL chưa được thiết lập. Dữ liệu chỉ được lưu tạm trên giao diện.');
+      alert('Chưa cấu hình VITE_APPS_SCRIPT_URL. Vui lòng thêm biến môi trường này trong phần Settings để có thể lưu dữ liệu vào Google Sheets.');
+    }
+  };
+
+  const addTransaction = async (transactionData: Omit<Transaction, 'id'>) => {
+    // Cập nhật giao diện ngay lập tức
+    const newTransaction: Transaction = {
+      ...transactionData,
+      id: `t-${Date.now()}`
+    };
+    setTransactions(prev => [...prev, newTransaction]);
+
+    // Gửi lên Google Apps Script
+    const appsScriptUrl = import.meta.env.VITE_APPS_SCRIPT_URL;
+    if (appsScriptUrl) {
+      try {
+        await fetch(appsScriptUrl, {
+          method: 'POST',
+          mode: 'no-cors', // Cần thiết để tránh lỗi CORS khi gọi Google Apps Script
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'addTransaction', payload: newTransaction })
+        });
+        setTimeout(() => fetchData(), 2000);
+      } catch (e) {
+        console.error('Lỗi khi lưu lên Google Sheets:', e);
+        alert('Lưu thất bại: Vui lòng kiểm tra lại đường truyền mạng.');
+      }
+    } else {
+      console.warn('VITE_APPS_SCRIPT_URL chưa được thiết lập. Dữ liệu chỉ được lưu tạm trên giao diện.');
+      alert('Chưa cấu hình VITE_APPS_SCRIPT_URL. Vui lòng thêm biến môi trường này trong phần Settings để có thể lưu dữ liệu vào Google Sheets.');
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
 
   return (
-    <DataContext.Provider value={{ members, matches, transactions, isLoading, error, refreshData: fetchData }}>
+    <DataContext.Provider value={{ members, matches, transactions, isLoading, error, refreshData: fetchData, addMatch, addTransaction }}>
       {children}
     </DataContext.Provider>
   );

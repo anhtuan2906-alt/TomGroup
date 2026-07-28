@@ -5,8 +5,11 @@ import { PlusCircle, MinusCircle, Search, Loader2, ChevronDown, ChevronRight } f
 import { Transaction } from '../types';
 
 export default function FinanceManager({ filter = 'all', onFilterChange }: { filter?: 'all' | 'income' | 'expense', onFilterChange?: (f: 'all' | 'income' | 'expense') => void }) {
-  const { transactions, isLoading, error } = useData();
+  const { transactions, members, isLoading, error, addTransaction } = useData();
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
+  const [isAddingTransaction, setIsAddingTransaction] = useState(false);
+  const [transactionType, setTransactionType] = useState<'income' | 'expense'>('income');
+  const [amountStr, setAmountStr] = useState('');
 
   const toggleDate = (date: string) => {
     setExpandedDates(prev => ({
@@ -65,11 +68,99 @@ export default function FinanceManager({ filter = 'all', onFilterChange }: { fil
   const overallExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
   const overallBalance = overallIncome - overallExpense;
 
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    if (value) {
+      setAmountStr(new Intl.NumberFormat('vi-VN').format(Number(value)));
+    } else {
+      setAmountStr('');
+    }
+  };
+
+  const handleTransactionSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const amountVal = Number(amountStr.replace(/\D/g, ''));
+    if (!amountVal) return;
+    const newTransaction = {
+      date: formData.get('date') as string,
+      description: formData.get('description') as string,
+      amount: amountVal,
+      type: transactionType,
+      memberId: transactionType === 'income' ? formData.get('memberId') as string : undefined,
+    };
+    if (addTransaction) {
+      addTransaction(newTransaction);
+    }
+    setIsAddingTransaction(false);
+    setAmountStr('');
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 className="text-2xl font-bold text-slate-100">Quản lý Thu Chi</h2>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => { setTransactionType('expense'); setIsAddingTransaction(true); }}
+            className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm flex-1 sm:flex-auto"
+          >
+            <MinusCircle size={16} className="text-rose-400" /> Ghi chi
+          </button>
+          <button 
+            onClick={() => { setTransactionType('income'); setIsAddingTransaction(true); }}
+            className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm flex-1 sm:flex-auto"
+          >
+            <PlusCircle size={16} /> Ghi thu
+          </button>
+        </div>
       </div>
+
+      {isAddingTransaction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-slate-100 mb-6">
+                Thêm khoản {transactionType === 'income' ? 'thu' : 'chi'}
+              </h3>
+              <form onSubmit={handleTransactionSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Ngày giao dịch</label>
+                  <input required type="date" name="date" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-slate-200 focus:outline-none focus:border-emerald-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Nội dung</label>
+                  <input required type="text" name="description" placeholder="Vd: Tiền sân, tiền nước..." className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-slate-200 focus:outline-none focus:border-emerald-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Số tiền (VNĐ)</label>
+                  <input required type="text" value={amountStr} onChange={handleAmountChange} placeholder="Vd: 100" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-slate-200 focus:outline-none focus:border-emerald-500" />
+                </div>
+                {transactionType === 'income' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-400 mb-1">Người đóng quỹ</label>
+                    <select required name="memberId" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                      <option value="">-- Chọn thành viên --</option>
+                      {members.map(member => (
+                        <option key={member.id} value={member.id}>{member.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                
+                <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-slate-800">
+                  <button type="button" onClick={() => setIsAddingTransaction(false)} className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors">
+                    Hủy
+                  </button>
+                  <button type="submit" className={`px-6 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm text-white ${transactionType === 'income' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-rose-600 hover:bg-rose-500'}`}>
+                    Lưu giao dịch
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl overflow-hidden flex flex-col shadow-sm">
         <div className="p-4 border-b border-slate-700/50 flex flex-col sm:flex-row gap-4 items-center justify-between bg-slate-900/30">

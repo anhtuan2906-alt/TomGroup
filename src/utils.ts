@@ -22,6 +22,20 @@ export function safeGetTime(dateStr: string | undefined): number {
   return isNaN(time) ? 0 : time;
 }
 
+export function getDirectImageUrl(url: string | undefined): string {
+  if (!url) return '';
+  
+  // Xử lý link Google Drive để lấy ảnh trực tiếp
+  if (url.includes('drive.google.com')) {
+    const matchId = url.match(/(?:id=|d\/|folders\/)([a-zA-Z0-9_-]{25,})/);
+    if (matchId && matchId[1]) {
+      return `https://lh3.googleusercontent.com/d/${matchId[1]}`;
+    }
+  }
+  
+  return url;
+}
+
 export function formatDate(dateString: string | undefined): string {
   if (!dateString) return '';
   const date = parseDate(dateString);

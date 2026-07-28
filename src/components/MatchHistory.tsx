@@ -1,9 +1,12 @@
+import React, { useState } from 'react';
 import { formatDate } from '../utils';
 import { useData } from '../contexts/DataContext';
 import { MapPin, CalendarDays, Swords, Loader2 } from 'lucide-react';
 
 export default function MatchHistory() {
-  const { matches, isLoading, error } = useData();
+  const { matches, isLoading, error, addMatch } = useData();
+
+  const [isAddingMatch, setIsAddingMatch] = useState(false);
 
   const getResultColor = (result: string) => {
     switch (result) {
@@ -25,11 +28,79 @@ export default function MatchHistory() {
     }
   };
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const newMatch = {
+      date: formData.get('date') as string,
+      opponent: formData.get('opponent') as string,
+      location: formData.get('location') as string,
+      result: formData.get('result') as 'win' | 'loss' | 'draw' | 'upcoming',
+      score: formData.get('score') as string,
+    };
+    addMatch(newMatch);
+    setIsAddingMatch(false);
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 className="text-2xl font-bold text-slate-100">Lịch sử trận đấu</h2>
+        <button 
+          onClick={() => setIsAddingMatch(true)}
+          className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm"
+        >
+          + Thêm trận đấu
+        </button>
       </div>
+
+      {isAddingMatch && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-slate-100 mb-6">Thêm trận đấu mới</h3>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Ngày thi đấu</label>
+                  <input required type="date" name="date" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-slate-200 focus:outline-none focus:border-emerald-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Đối thủ</label>
+                  <input required type="text" name="opponent" placeholder="Tên đội bóng..." className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-slate-200 focus:outline-none focus:border-emerald-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Sân thi đấu</label>
+                  <input required type="text" name="location" placeholder="Tên sân..." className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-slate-200 focus:outline-none focus:border-emerald-500" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-400 mb-1">Kết quả</label>
+                    <select required name="result" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
+                      <option value="upcoming">Sắp tới</option>
+                      <option value="win">Thắng</option>
+                      <option value="draw">Hòa</option>
+                      <option value="loss">Thua</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-400 mb-1">Tỷ số</label>
+                    <input type="text" name="score" placeholder="Vd: 3-1" className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-slate-200 focus:outline-none focus:border-emerald-500" />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-slate-800">
+                  <button type="button" onClick={() => setIsAddingMatch(false)} className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors">
+                    Hủy
+                  </button>
+                  <button type="submit" className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm">
+                    Lưu trận đấu
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-4">
         {isLoading ? (

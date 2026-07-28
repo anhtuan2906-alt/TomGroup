@@ -38,7 +38,7 @@ export default function App() {
             <div className="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center text-slate-950 font-black shadow-[0_0_15px_rgba(16,185,129,0.3)]">
               FC
             </div>
-            FC Tom Group
+            Tom Group
           </h1>
         </div>
         <nav className="flex-1 px-4 py-2 space-y-1.5">
@@ -70,7 +70,7 @@ export default function App() {
              <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center text-slate-950 font-black text-sm">
                FC
              </div>
-             FC Tom Group
+             Tom Group
            </h1>
            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-slate-300 p-2 hover:bg-slate-800 rounded-lg transition-colors">
              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}

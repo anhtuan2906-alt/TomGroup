@@ -104,9 +104,10 @@ export default function Dashboard({ onNavigate }: { onNavigate?: (tab: string, f
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px' }}
                   itemStyle={{ color: '#f8fafc' }}
+                  itemSorter={(item) => item.dataKey === 'expense' ? 1 : -1}
                 />
-                <Area type="monotone" dataKey="income" name="Thu" stroke="#34d399" strokeWidth={2} fillOpacity={1} fill="url(#colorIncome)" />
                 <Area type="monotone" dataKey="expense" name="Chi" stroke="#fb7185" strokeWidth={2} fillOpacity={1} fill="url(#colorExpense)" />
+                <Area type="monotone" dataKey="income" name="Thu" stroke="#34d399" strokeWidth={2} fillOpacity={1} fill="url(#colorIncome)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
