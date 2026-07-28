@@ -88,7 +88,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setMatches(prev => [...prev, newMatch]);
 
     // Gửi lên Google Apps Script
-    const appsScriptUrl = import.meta.env.VITE_APPS_SCRIPT_URL;
+    const appsScriptUrl = import.meta.env.VITE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwKo3VLP3IXNo7rsDwGMKzYze-94MFwnyqPbzaJOEnhMExfJF9cFUQ24z9ZRH7fwLSePQ/exec';
     if (appsScriptUrl) {
       try {
         await fetch(appsScriptUrl, {
@@ -119,7 +119,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setTransactions(prev => [...prev, newTransaction]);
 
     // Gửi lên Google Apps Script
-    const appsScriptUrl = import.meta.env.VITE_APPS_SCRIPT_URL;
+    const appsScriptUrl = import.meta.env.VITE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwKo3VLP3IXNo7rsDwGMKzYze-94MFwnyqPbzaJOEnhMExfJF9cFUQ24z9ZRH7fwLSePQ/exec';
     if (appsScriptUrl) {
       try {
         await fetch(appsScriptUrl, {
