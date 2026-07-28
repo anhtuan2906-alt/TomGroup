@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Home, Users, DollarSign, Calendar, Menu, X } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import MembersList from './components/MembersList';
@@ -14,6 +14,27 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [financeFilter, setFinanceFilter] = useState<'all' | 'income' | 'expense'>('all');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [clickCount, setClickCount] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const clickTimeoutRef = useRef<NodeJS.Timeout>();
+
+  const handleLogoClick = () => {
+    if (isAdmin) return;
+    
+    setClickCount(prev => {
+      const newCount = prev + 1;
+      if (newCount >= 3) {
+        setIsAdmin(true);
+        return 0;
+      }
+      return newCount;
+    });
+
+    if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
+    clickTimeoutRef.current = setTimeout(() => {
+      setClickCount(0);
+    }, 1000);
+  };
 
   const navigateTo = (tab: string, filter?: 'all' | 'income' | 'expense') => {
     setActiveTab(tab);
@@ -33,7 +54,7 @@ export default function App() {
     <div className="flex h-screen bg-slate-900 text-slate-100 font-sans selection:bg-emerald-500/30">
       {/* Sidebar Desktop */}
       <aside className="hidden md:flex flex-col w-64 bg-slate-950 border-r border-slate-800/80">
-        <div className="p-6">
+        <div className="p-6 cursor-pointer select-none" onClick={handleLogoClick}>
           <h1 className="text-2xl font-bold text-emerald-400 tracking-tight flex items-center gap-3">
             <div className="w-9 h-9 bg-emerald-500 rounded-xl flex items-center justify-center text-slate-950 font-black shadow-[0_0_15px_rgba(16,185,129,0.3)]">
               FC
@@ -66,12 +87,14 @@ export default function App() {
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden relative bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950">
         {/* Mobile Header */}
         <header className="md:hidden flex items-center justify-between p-4 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
-           <h1 className="text-xl font-bold text-emerald-400 flex items-center gap-2">
-             <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center text-slate-950 font-black text-sm">
-               FC
-             </div>
-             Tom Group
-           </h1>
+           <div className="cursor-pointer select-none" onClick={handleLogoClick}>
+             <h1 className="text-xl font-bold text-emerald-400 flex items-center gap-2">
+               <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center text-slate-950 font-black text-sm">
+                 FC
+               </div>
+               Tom Group
+             </h1>
+           </div>
            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-slate-300 p-2 hover:bg-slate-800 rounded-lg transition-colors">
              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
            </button>
@@ -108,8 +131,8 @@ export default function App() {
           <div className="max-w-6xl mx-auto">
             {activeTab === 'dashboard' && <Dashboard onNavigate={navigateTo} />}
             {activeTab === 'members' && <MembersList />}
-            {activeTab === 'finances' && <FinanceManager filter={financeFilter} onFilterChange={setFinanceFilter} />}
-            {activeTab === 'matches' && <MatchHistory />}
+            {activeTab === 'finances' && <FinanceManager filter={financeFilter} onFilterChange={setFinanceFilter} isAdmin={isAdmin} />}
+            {activeTab === 'matches' && <MatchHistory isAdmin={isAdmin} />}
           </div>
         </div>
       </main>

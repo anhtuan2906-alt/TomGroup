@@ -4,7 +4,7 @@ import { formatCurrency, formatDate, safeGetTime } from '../utils';
 import { PlusCircle, MinusCircle, Search, Loader2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Transaction } from '../types';
 
-export default function FinanceManager({ filter = 'all', onFilterChange }: { filter?: 'all' | 'income' | 'expense', onFilterChange?: (f: 'all' | 'income' | 'expense') => void }) {
+export default function FinanceManager({ filter = 'all', onFilterChange, isAdmin = false }: { filter?: 'all' | 'income' | 'expense', onFilterChange?: (f: 'all' | 'income' | 'expense') => void, isAdmin?: boolean }) {
   const { transactions, members, isLoading, error, addTransaction } = useData();
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
   const [isAddingTransaction, setIsAddingTransaction] = useState(false);
@@ -101,18 +101,22 @@ export default function FinanceManager({ filter = 'all', onFilterChange }: { fil
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 className="text-2xl font-bold text-slate-100">Quản lý Thu Chi</h2>
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => { setTransactionType('expense'); setIsAddingTransaction(true); }}
-            className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm flex-1 sm:flex-auto"
-          >
-            <MinusCircle size={16} className="text-rose-400" /> Ghi chi
-          </button>
-          <button 
-            onClick={() => { setTransactionType('income'); setIsAddingTransaction(true); }}
-            className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm flex-1 sm:flex-auto"
-          >
-            <PlusCircle size={16} /> Ghi thu
-          </button>
+          {isAdmin && (
+            <>
+              <button 
+                onClick={() => { setTransactionType('expense'); setIsAddingTransaction(true); }}
+                className="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm flex-1 sm:flex-auto"
+              >
+                <MinusCircle size={16} className="text-rose-400" /> Ghi chi
+              </button>
+              <button 
+                onClick={() => { setTransactionType('income'); setIsAddingTransaction(true); }}
+                className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm flex-1 sm:flex-auto"
+              >
+                <PlusCircle size={16} /> Ghi thu
+              </button>
+            </>
+          )}
         </div>
       </div>
 

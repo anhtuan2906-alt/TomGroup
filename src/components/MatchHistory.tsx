@@ -3,7 +3,7 @@ import { formatDate } from '../utils';
 import { useData } from '../contexts/DataContext';
 import { MapPin, CalendarDays, Swords, Loader2 } from 'lucide-react';
 
-export default function MatchHistory() {
+export default function MatchHistory({ isAdmin = false }: { isAdmin?: boolean }) {
   const { matches, isLoading, error, addMatch } = useData();
 
   const [isAddingMatch, setIsAddingMatch] = useState(false);
@@ -46,12 +46,14 @@ export default function MatchHistory() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 className="text-2xl font-bold text-slate-100">Lịch sử trận đấu</h2>
-        <button 
-          onClick={() => setIsAddingMatch(true)}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm"
-        >
-          + Thêm trận đấu
-        </button>
+        {isAdmin && (
+          <button 
+            onClick={() => setIsAddingMatch(true)}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm"
+          >
+            + Thêm trận đấu
+          </button>
+        )}
       </div>
 
       {isAddingMatch && (
