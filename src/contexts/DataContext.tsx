@@ -51,9 +51,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const PENDING_MATCHES_KEY = 'fc_pending_matches';
+  const PENDING_TRANSACTIONS_KEY = 'fc_pending_transactions';
+
+  const fetchData = async (showLoading = true) => {
     try {
-      setIsLoading(true);
+      if (showLoading) setIsLoading(true);
       setError(null);
       
       const [fetchedMembers, fetchedMatches, fetchedTransactions] = await Promise.all([
@@ -68,14 +71,26 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         amount: Number(t.amount) || 0
       }));
 
+      // Lấy các dữ liệu pending từ localStorage
+      const pendingMatches: Match[] = JSON.parse(localStorage.getItem(PENDING_MATCHES_KEY) || '[]');
+      const pendingTransactions: Transaction[] = JSON.parse(localStorage.getItem(PENDING_TRANSACTIONS_KEY) || '[]');
+
+      // Lọc bỏ những dữ liệu pending ĐÃ xuất hiện trong CSV (dựa theo ID)
+      const remainingPendingMatches = pendingMatches.filter(pm => !fetchedMatches.some(fm => fm.id === pm.id));
+      const remainingPendingTransactions = pendingTransactions.filter(pt => !processedTransactions.some(ft => ft.id === pt.id));
+
+      // Cập nhật lại localStorage với những mục vẫn còn pending
+      localStorage.setItem(PENDING_MATCHES_KEY, JSON.stringify(remainingPendingMatches));
+      localStorage.setItem(PENDING_TRANSACTIONS_KEY, JSON.stringify(remainingPendingTransactions));
+
       setMembers(fetchedMembers);
-      setMatches(fetchedMatches);
-      setTransactions(processedTransactions);
+      setMatches([...fetchedMatches, ...remainingPendingMatches]);
+      setTransactions([...processedTransactions, ...remainingPendingTransactions]);
     } catch (err) {
       console.error('Error fetching data:', err);
       setError('Không thể tải dữ liệu từ Google Sheets. Vui lòng thử lại sau.');
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   };
 
@@ -85,6 +100,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       ...matchData,
       id: `match-${Date.now()}`
     };
+    
+    // Lưu vào pending storage
+    const pendingMatches = JSON.parse(localStorage.getItem(PENDING_MATCHES_KEY) || '[]');
+    localStorage.setItem(PENDING_MATCHES_KEY, JSON.stringify([...pendingMatches, newMatch]));
+
     setMatches(prev => [...prev, newMatch]);
 
     // Gửi lên Google Apps Script
@@ -97,8 +117,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'addMatch', payload: newMatch })
         });
-        // Gọi refreshData để cập nhật dữ liệu mới nhất (dù CSV có thể bị delay vài phút)
-        setTimeout(() => fetchData(), 2000);
       } catch (e) {
         console.error('Lỗi khi lưu lên Google Sheets:', e);
         // Với no-cors, fetch hiếm khi ném lỗi (trừ khi mất mạng), nhưng nếu có lỗi thì báo:
@@ -116,6 +134,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       ...transactionData,
       id: `t-${Date.now()}`
     };
+
+    // Lưu vào pending storage
+    const pendingTransactions = JSON.parse(localStorage.getItem(PENDING_TRANSACTIONS_KEY) || '[]');
+    localStorage.setItem(PENDING_TRANSACTIONS_KEY, JSON.stringify([...pendingTransactions, newTransaction]));
+
     setTransactions(prev => [...prev, newTransaction]);
 
     // Gửi lên Google Apps Script
@@ -128,7 +151,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'addTransaction', payload: newTransaction })
         });
-        setTimeout(() => fetchData(), 2000);
       } catch (e) {
         console.error('Lỗi khi lưu lên Google Sheets:', e);
         alert('Lưu thất bại: Vui lòng kiểm tra lại đường truyền mạng.');
@@ -141,6 +163,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     fetchData();
+    
+    // Tự động refresh ngầm mỗi 30 giây để lấy dữ liệu mới từ CSV mà không giật màn hình
+    const interval = setInterval(() => {
+      fetchData(false);
+    }, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
