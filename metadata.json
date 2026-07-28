@@ -1,0 +1,6 @@
+{
+  "name": "FC Tom Group - Quản lý quỹ đội bóng",
+  "description": "Ứng dụng chuyên nghiệp dành cho thủ quỹ đội bóng để quản lý thu chi, thành viên và lịch sử trận đấu.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
