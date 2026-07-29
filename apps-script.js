@@ -59,20 +59,22 @@ function doPost(e) {
       const matchSheet = sheet.getSheetByName('TranDau'); 
       if (!matchSheet) throw new Error("Không tìm thấy sheet 'TranDau'");
       
-      matchSheet.appendRow([
+      matchSheet.insertRowAfter(1);
+      matchSheet.getRange(2, 1, 1, 6).setValues([[
         payload.id,
         payload.date,
         payload.opponent,
         payload.location,
         payload.result,
         payload.score || ''
-      ]);
+      ]]);
     } 
     else if (action === 'addTransaction') {
       const txSheet = sheet.getSheetByName('ThuChi');
       if (!txSheet) throw new Error("Không tìm thấy sheet 'ThuChi'");
       
-      txSheet.appendRow([
+      txSheet.insertRowAfter(1);
+      txSheet.getRange(2, 1, 1, 7).setValues([[
         payload.id,
         payload.type,
         payload.amount,
@@ -80,7 +82,7 @@ function doPost(e) {
         payload.description,
         payload.memberId || '',
         payload.matchId || ''
-      ]);
+      ]]);
     }
 
     return output;

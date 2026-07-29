@@ -108,8 +108,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(PENDING_TRANSACTIONS_KEY, JSON.stringify(remainingPendingTransactions));
 
       setMembers(fetchedMembers);
-      setMatches([...fetchedMatches, ...remainingPendingMatches]);
-      setTransactions([...processedTransactions, ...remainingPendingTransactions]);
+      setMatches([...remainingPendingMatches, ...fetchedMatches]);
+      setTransactions([...remainingPendingTransactions, ...processedTransactions]);
     } catch (err) {
       console.error('Error fetching data:', err);
       setError('Không thể tải dữ liệu. Vui lòng thử lại sau.');
@@ -127,9 +127,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     
     // Lưu vào pending storage
     const pendingMatches = JSON.parse(localStorage.getItem(PENDING_MATCHES_KEY) || '[]');
-    localStorage.setItem(PENDING_MATCHES_KEY, JSON.stringify([...pendingMatches, newMatch]));
+    localStorage.setItem(PENDING_MATCHES_KEY, JSON.stringify([newMatch, ...pendingMatches]));
 
-    setMatches(prev => [...prev, newMatch]);
+    setMatches(prev => [newMatch, ...prev]);
 
     // Gửi lên Google Apps Script
     const appsScriptUrl = import.meta.env.VITE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwKo3VLP3IXNo7rsDwGMKzYze-94MFwnyqPbzaJOEnhMExfJF9cFUQ24z9ZRH7fwLSePQ/exec';
@@ -161,9 +161,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
     // Lưu vào pending storage
     const pendingTransactions = JSON.parse(localStorage.getItem(PENDING_TRANSACTIONS_KEY) || '[]');
-    localStorage.setItem(PENDING_TRANSACTIONS_KEY, JSON.stringify([...pendingTransactions, newTransaction]));
+    localStorage.setItem(PENDING_TRANSACTIONS_KEY, JSON.stringify([newTransaction, ...pendingTransactions]));
 
-    setTransactions(prev => [...prev, newTransaction]);
+    setTransactions(prev => [newTransaction, ...prev]);
 
     // Gửi lên Google Apps Script
     const appsScriptUrl = import.meta.env.VITE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwKo3VLP3IXNo7rsDwGMKzYze-94MFwnyqPbzaJOEnhMExfJF9cFUQ24z9ZRH7fwLSePQ/exec';
