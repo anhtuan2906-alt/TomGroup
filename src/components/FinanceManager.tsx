@@ -82,8 +82,12 @@ export default function FinanceManager({ filter = 'all', onFilterChange, isAdmin
     const formData = new FormData(e.currentTarget);
     const amountVal = Number(amountStr.replace(/\D/g, ''));
     if (!amountVal) return;
+    
+    const dateInput = formData.get('date') as string;
+    const formattedDate = dateInput ? dateInput.split('-').reverse().join('/') : '';
+    
     const newTransaction = {
-      date: formData.get('date') as string,
+      date: formattedDate,
       description: formData.get('description') as string,
       amount: amountVal,
       type: transactionType,

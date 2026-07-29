@@ -105,6 +105,7 @@ export default function Dashboard({ onNavigate }: { onNavigate?: (tab: string, f
                   contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px' }}
                   itemStyle={{ color: '#f8fafc' }}
                   itemSorter={(item) => item.dataKey === 'expense' ? 1 : -1}
+                  formatter={(value: any) => formatCurrency(Number(value))}
                 />
                 <Area type="monotone" dataKey="expense" name="Chi" stroke="#fb7185" strokeWidth={2} fillOpacity={1} fill="url(#colorExpense)" />
                 <Area type="monotone" dataKey="income" name="Thu" stroke="#34d399" strokeWidth={2} fillOpacity={1} fill="url(#colorIncome)" />

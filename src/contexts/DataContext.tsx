@@ -112,7 +112,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setTransactions([...processedTransactions, ...remainingPendingTransactions]);
     } catch (err) {
       console.error('Error fetching data:', err);
-      setError('Không thể tải dữ liệu từ Google Sheets. Vui lòng thử lại sau.');
+      setError('Không thể tải dữ liệu. Vui lòng thử lại sau.');
     } finally {
       if (showLoading) setIsLoading(false);
     }

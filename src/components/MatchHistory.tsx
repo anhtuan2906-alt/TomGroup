@@ -31,8 +31,12 @@ export default function MatchHistory({ isAdmin = false }: { isAdmin?: boolean })
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    
+    const dateInput = formData.get('date') as string;
+    const formattedDate = dateInput ? dateInput.split('-').reverse().join('/') : '';
+    
     const newMatch = {
-      date: formData.get('date') as string,
+      date: formattedDate,
       opponent: formData.get('opponent') as string,
       location: formData.get('location') as string,
       result: formData.get('result') as 'win' | 'loss' | 'draw' | 'upcoming',
